@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+cloud_env/
+*.pyc
+
+# Models (large files – optional, if you want to share models, remove these lines)
+*.h5
+*.keras
+*.pkl
+*.joblib
+
+# Data (optional – if data is large, you can skip)
+*.csv
+*.xlsx
+
+# Frontend
+frontend_react/node_modules/
+frontend_react/build/
+frontend_react/.env
+
+# Backend logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.dbfrontend/node_modules/
+frontend_react/node_modules/
+*.log
+.cache/
