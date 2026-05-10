@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
-from auth import auth_bp
-from water_quality_service import service
+#from auth import auth_bp
+#from water_quality_service import service
 import pandas as pd
 import os
 from datetime import datetime
@@ -24,7 +24,7 @@ app.config['JWT_SECRET_KEY'] = 'aquawatch-secret-key-change-in-production'
 jwt = JWTManager(app)
 
 # Register blueprints
-app.register_blueprint(auth_bp)
+#app.register_blueprint(auth_bp)
 
 # Store analysis results (in production, use database)
 analysis_results = {}
