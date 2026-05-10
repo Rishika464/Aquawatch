@@ -163,6 +163,26 @@ def get_results(analysis_id):
     if analysis_id in uploaded_files:
         return jsonify(uploaded_files[analysis_id]), 200
     return jsonify({'error': 'Results not found'}), 404
+@app.route('/api/live-readings', methods=['GET'])
+def get_live_readings():
+    """Get recent live readings from Firestore"""
+    try:
+        # Get last 50 readings from Firestore
+        readings_ref = db.collection('live_readings').order_by('timestamp', direction='DESCENDING').limit(50)
+        docs = readings_ref.stream()
+        
+        readings = []
+        for doc in docs:
+            data = doc.to_dict()
+            data['id'] = doc.id
+            # Convert timestamp to string for JSON
+            if data.get('timestamp'):
+                data['timestamp'] = data['timestamp'].isoformat()
+            readings.append(data)
+        
+        return jsonify(readings), 200
+    except Exception as e:
+        return jsonify({'error': str(e), 'readings': []}), 200
 
 @app.route('/api/results/export/<analysis_id>', methods=['GET'])
 @jwt_required()
