@@ -14,7 +14,9 @@ const Login = ({ setIsAuthenticated }) => {
     setLoading(true);
     
     try {
-      const response = await axios.post('http://localhost:8000/api/login', {
+      // ✅ FIXED: Using environment variable instead of hardcoded localhost
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://aquawatch-final-1083164910658.asia-south1.run.app';
+      const response = await axios.post(`${apiUrl}/api/login`, {
         email,
         password
       });
@@ -91,9 +93,6 @@ const Login = ({ setIsAuthenticated }) => {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-
-        {/* Demo Credentials */}
-        
       </div>
     </div>
   );

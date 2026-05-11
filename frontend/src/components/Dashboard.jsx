@@ -42,6 +42,7 @@ const Dashboard = ({ setIsAuthenticated }) => {
   
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
+  const API_URL = process.env.REACT_APP_API_URL || 'https://aquawatch-final-1083164910658.asia-south1.run.app';
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -54,7 +55,7 @@ const Dashboard = ({ setIsAuthenticated }) => {
     fetchAlerts();
 
     // Fetch Firebase history
-    axios.get('http://localhost:8000/api/firebase/history', {
+    axios.get(`${API_URL}/api/firebase/history`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setHistoryData(res.data))
@@ -118,7 +119,7 @@ const Dashboard = ({ setIsAuthenticated }) => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8000/api/dashboard/stats', {
+      const response = await axios.get(`${API_URL}/api/dashboard/stats`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStats(response.data);
@@ -129,7 +130,7 @@ const Dashboard = ({ setIsAuthenticated }) => {
 
   const fetchLiveReadings = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/firebase/live', {
+      const response = await axios.get(`${API_URL}/api/firebase/live`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.length > 0) {
@@ -149,7 +150,7 @@ const Dashboard = ({ setIsAuthenticated }) => {
 
   const fetchAlerts = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/firebase/alerts', {
+      const response = await axios.get(`${API_URL}/api/firebase/alerts`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAlerts(response.data);
@@ -166,8 +167,8 @@ const Dashboard = ({ setIsAuthenticated }) => {
     navigate('/login');
   };
 
-  // Prepare chart data
-  const chartData = liveReadings.slice(0, 30).reverse().map((item, index) => ({
+  // Prepare chart data - safe array check
+  const chartData = (Array.isArray(liveReadings) ? liveReadings : []).slice(0, 30).reverse().map((item, index) => ({
     time: item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : `${index}m ago`,
     dwsi: item.dwsi || 70 + Math.random() * 20,
     ph: item.ph || 7.2,
@@ -305,7 +306,7 @@ const Dashboard = ({ setIsAuthenticated }) => {
           </div>
         </div>
 
-        {/* 📈 Live DWSI Trend Chart - MOST IMPORTANT VISUAL */}
+        {/* 📈 Live DWSI Trend Chart */}
         <div className="glass rounded-xl p-6 mb-6">
           <div className="flex justify-between items-center mb-4">
             <div>
@@ -457,32 +458,32 @@ const Dashboard = ({ setIsAuthenticated }) => {
                 </tr>
               </thead>
               <tbody>
-                {liveReadings.slice(0, 10).map((reading, idx) => (
+                {(Array.isArray(liveReadings) ? liveReadings : []).slice(0, 10).map((item, idx) => (
                   <tr key={idx} className="border-b border-gray-800 hover:bg-gray-800/30 transition">
                     <td className="py-3 text-gray-300 text-xs">
-                      {reading.timestamp ? new Date(reading.timestamp).toLocaleTimeString() : '-'}
+                      {item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : '-'}
                     </td>
-                    <td className={`py-3 ${getStatusColor(reading.ph, 6.5, 8.5)}`}>
-                      {reading.ph?.toFixed(1) || '-'}
+                    <td className={`py-3 ${getStatusColor(item.ph, 6.5, 8.5)}`}>
+                      {item.ph?.toFixed(1) || '-'}
                     </td>
-                    <td className={`py-3 ${getStatusColor(reading.temperature, 15, 30)}`}>
-                      {reading.temperature?.toFixed(1) || '-'}°C
+                    <td className={`py-3 ${getStatusColor(item.temperature, 15, 30)}`}>
+                      {item.temperature?.toFixed(1) || '-'}°C
                     </td>
-                    <td className={`py-3 ${getStatusColor(reading.do, 6, 12)}`}>
-                      {reading.do?.toFixed(1) || '-'} mg/L
+                    <td className={`py-3 ${getStatusColor(item.do, 6, 12)}`}>
+                      {item.do?.toFixed(1) || '-'} mg/L
                     </td>
-                    <td className={`py-3 ${getStatusColor(reading.turbidity, 0, 5)}`}>
-                      {reading.turbidity?.toFixed(1) || '-'} NTU
+                    <td className={`py-3 ${getStatusColor(item.turbidity, 0, 5)}`}>
+                      {item.turbidity?.toFixed(1) || '-'} NTU
                     </td>
                     <td className="py-3 text-blue-400 font-medium">
-                      {reading.dwsi?.toFixed(1) || '-'}
+                      {item.dwsi?.toFixed(1) || '-'}
                     </td>
                     <td className="py-3">
-                      {reading.dwsi >= 80 ? (
+                      {item.dwsi >= 80 ? (
                         <span className="text-green-400 text-xs">✅ Excellent</span>
-                      ) : reading.dwsi >= 60 ? (
+                      ) : item.dwsi >= 60 ? (
                         <span className="text-blue-400 text-xs">👍 Good</span>
-                      ) : reading.dwsi >= 40 ? (
+                      ) : item.dwsi >= 40 ? (
                         <span className="text-yellow-400 text-xs">⚠️ Moderate</span>
                       ) : (
                         <span className="text-red-400 text-xs">🔴 Critical</span>
@@ -509,6 +510,7 @@ const Dashboard = ({ setIsAuthenticated }) => {
 
 const HistoryView = () => {
   const [history, setHistory] = useState([]);
+  const API_URL = process.env.REACT_APP_API_URL || 'https://aquawatch-final-1083164910658.asia-south1.run.app';
 
   useEffect(() => {
     fetchHistory();
@@ -517,7 +519,7 @@ const HistoryView = () => {
   const fetchHistory = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:8000/api/history', {
+      const response = await axios.get(`${API_URL}/api/history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setHistory(response.data);

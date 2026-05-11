@@ -9,12 +9,15 @@ const DataUpload = () => {
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [uploadResult, setUploadResult] = useState(null);
   const navigate = useNavigate();
+  const API_URL = process.env.REACT_APP_API_URL || 'https://aquawatch-final-1083164910658.asia-south1.run.app';
 
   const onDrop = useCallback((acceptedFiles) => {
     const selectedFile = acceptedFiles[0];
     if (selectedFile) {
       setFile(selectedFile);
+      setUploadResult(null);
       
       // Preview first few rows
       const reader = new FileReader();
@@ -49,7 +52,7 @@ const DataUpload = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:8000/api/analyze/upload', formData, {
+      const response = await axios.post(`${API_URL}/api/analyze/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`
@@ -57,50 +60,25 @@ const DataUpload = () => {
       });
 
       if (response.data) {
-        // Store results in localStorage for results page
+        console.log("Upload response:", response.data);
+        setUploadResult(response.data);
         localStorage.setItem('currentAnalysis', JSON.stringify(response.data));
         toast.success(`Analysis complete! ${response.data.total_records} records processed`);
+        // Navigate to results page
         navigate('/dashboard/results');
       }
     } catch (error) {
+      console.error("Upload error:", error);
       toast.error(error.response?.data?.error || 'Upload failed');
     } finally {
       setUploading(false);
     }
   };
 
-  const handleSingleEntry = async () => {
-    // For single entry manual input
-    const sampleData = {
-      ph: 7.2,
-      temperature: 22.5,
-      do: 8.1,
-      turbidity: 2.3,
-      salinity: 18.5
-    };
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:8000/api/analyze/single', sampleData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      localStorage.setItem('currentAnalysis', JSON.stringify({
-        total_records: 1,
-        results: [response.data],
-        average_dwsi: response.data.dwsi,
-        anomalies: response.data.is_anomaly ? 1 : 0
-      }));
-      navigate('/dashboard/results');
-      toast.success('Sample data analyzed');
-    } catch (error) {
-      toast.error('Analysis failed');
-    }
-  };
-
   const clearFile = () => {
     setFile(null);
     setPreview(null);
+    setUploadResult(null);
   };
 
   return (
@@ -139,10 +117,7 @@ const DataUpload = () => {
                   <div className="text-gray-400 text-sm">{(file.size / 1024).toFixed(2)} KB</div>
                 </div>
               </div>
-              <button
-                onClick={clearFile}
-                className="text-red-400 hover:text-red-300 transition"
-              >
+              <button onClick={clearFile} className="text-red-400 hover:text-red-300 transition">
                 <FaTrash />
               </button>
             </div>
@@ -178,12 +153,36 @@ const DataUpload = () => {
           </button>
           
           <button
-            onClick={handleSingleEntry}
+            onClick={() => navigate('/dashboard/results')}
             className="px-6 py-3 bg-gray-700 rounded-lg text-white font-semibold hover:bg-gray-600 transition"
           >
-            Test Sample
+            View Results
           </button>
         </div>
+
+        {/* Upload Result Summary */}
+        {uploadResult && (
+          <div className="mt-6 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+            <div className="flex items-center gap-2 text-green-400 mb-2">
+              <FaCheckCircle />
+              <span className="font-semibold">Upload Successful!</span>
+            </div>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold text-white">{uploadResult.total_records}</div>
+                <div className="text-gray-400 text-xs">Records</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-yellow-400">{uploadResult.anomalies}</div>
+                <div className="text-gray-400 text-xs">Anomalies</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-blue-400">{uploadResult.average_dwsi?.toFixed(1)}</div>
+                <div className="text-gray-400 text-xs">Avg DWSI</div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Instructions */}
