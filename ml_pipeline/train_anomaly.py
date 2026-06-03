@@ -41,10 +41,10 @@ X_train, X_test = train_test_split(X, test_size=0.2, random_state=42)
 input_dim = X.shape[1]
 
 input_layer = Input(shape=(input_dim,))
-encoded = Dense(16, activation="relu")(input_layer)
-encoded = Dense(8, activation="relu")(encoded)
+encoded = Dense(32, activation="relu")(input_layer)
+encoded = Dense(16, activation="relu")(encoded)
 
-decoded = Dense(16, activation="relu")(encoded)
+decoded = Dense(8, activation="relu")(encoded)
 decoded = Dense(input_dim, activation="linear")(decoded)
 
 autoencoder = Model(inputs=input_layer, outputs=decoded)
@@ -55,7 +55,7 @@ print("\n✅ Model built")
 # 🔹 Step 8: Train model
 history = autoencoder.fit(
     X_train, X_train,
-    epochs=20,
+    epochs=50,
     batch_size=32,
     validation_data=(X_test, X_test),
     verbose=1
