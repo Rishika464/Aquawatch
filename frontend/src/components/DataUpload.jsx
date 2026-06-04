@@ -11,7 +11,7 @@ const DataUpload = () => {
   const [preview, setPreview] = useState(null);
   const [uploadResult, setUploadResult] = useState(null);
   const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_API_URL || 'https://aquawatch-final-1083164910658.asia-south1.run.app';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://aquawatch-api.azurewebsites.net';
 
   const onDrop = useCallback((acceptedFiles) => {
     const selectedFile = acceptedFiles[0];

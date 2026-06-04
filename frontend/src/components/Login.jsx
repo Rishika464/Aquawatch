@@ -15,7 +15,7 @@ const Login = ({ setIsAuthenticated }) => {
     
     try {
       // ✅ FIXED: Using environment variable instead of hardcoded localhost
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://aquawatch-final-1083164910658.asia-south1.run.app';
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://aquawatch-api.azurewebsites.net';
       const response = await axios.post(`${apiUrl}/api/login`, {
         email,
         password

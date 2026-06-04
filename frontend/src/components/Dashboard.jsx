@@ -42,7 +42,7 @@ const Dashboard = ({ setIsAuthenticated }) => {
   
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
-  const API_URL = process.env.REACT_APP_API_URL || 'https://aquawatch-final-1083164910658.asia-south1.run.app';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://aquawatch-api.azurewebsites.net';
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -510,7 +510,7 @@ const Dashboard = ({ setIsAuthenticated }) => {
 
 const HistoryView = () => {
   const [history, setHistory] = useState([]);
-  const API_URL = process.env.REACT_APP_API_URL || 'https://aquawatch-final-1083164910658.asia-south1.run.app';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://aquawatch-api.azurewebsites.net';
 
   useEffect(() => {
     fetchHistory();
