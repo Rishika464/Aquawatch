@@ -6,6 +6,9 @@ import os
 from datetime import datetime, timedelta
 import uuid
 import json
+import threading
+import random
+import time
 
 app = Flask(__name__)
 
@@ -13,7 +16,8 @@ app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=[
     "http://localhost:3000",
     "http://localhost:3001",
-    "https://cloud-project-74451-495908.web.app"
+    "https://cloud-project-74451-495908.web.app",
+    "https://aquawatchweb22195.z29.web.core.windows.net"
 ])
 
 # JWT Configuration
@@ -27,6 +31,8 @@ os.makedirs("temp_uploads", exist_ok=True)
 # Store analysis results
 uploaded_files = {}
 analysis_results = {}
+live_readings = []
+current_reading = {}
 
 def calculate_dwsi(data):
     """Calculate Dynamic Water Quality Index"""
@@ -56,6 +62,41 @@ def calculate_dwsi(data):
         score += 12.5
     
     return score
+
+def sensor_simulator():
+
+    global live_readings
+    global current_reading
+
+    while True:
+
+        reading = {
+            "timestamp": datetime.now().isoformat(),
+            "ph": round(random.uniform(6.5, 8.5), 2),
+            "temperature": round(random.uniform(20, 30), 2),
+            "do": round(random.uniform(6, 9), 2),
+            "turbidity": round(random.uniform(1, 5), 2)
+        }
+
+        if random.random() < 0.3:
+
+            reading["ph"] = round(random.uniform(2.0, 11.0), 2)
+            reading["temperature"] = round(random.uniform(32, 38), 2)
+            reading["do"] = round(random.uniform(1, 4), 2)
+            reading["turbidity"] = round(random.uniform(10, 20), 2)
+
+        reading["dwsi"] = calculate_dwsi(reading)
+
+        current_reading = reading
+
+        live_readings.insert(0, reading)
+
+        if len(live_readings) > 20:
+            live_readings = live_readings[:20]
+
+        print("Generated:", reading)
+
+        time.sleep(5)
 
 def process_csv_data(file_path):
     """Process uploaded CSV file and return results"""
@@ -139,13 +180,48 @@ def login():
 def firebase_live():
     if request.method == 'OPTIONS':
         return '', 200
-    return jsonify([]), 200
+    return jsonify(live_readings), 200
 
-@app.route('/api/firebase/alerts', methods=['GET', 'OPTIONS'])
+@app.route('/api/firebase/alerts')
+@jwt_required()
 def firebase_alerts():
-    if request.method == 'OPTIONS':
-        return '', 200
-    return jsonify([]), 200
+
+    if not live_readings:
+        return jsonify([])
+
+    latest = live_readings[0]
+
+    alerts = []
+
+    if latest["ph"] < 6.5 or latest["ph"] > 8.5:
+        alerts.append({
+            "title": "Abnormal pH",
+            "message": f"Current pH = {latest['ph']}",
+            "severity": "high"
+        })
+
+    if latest["temperature"] > 30:
+        alerts.append({
+            "title": "High Temperature",
+            "message": f"{latest['temperature']} °C",
+            "severity": "high"
+        })
+
+    if latest["do"] < 5:
+        alerts.append({
+            "title": "Low Dissolved Oxygen",
+            "message": f"{latest['do']} mg/L",
+            "severity": "high"
+        })
+
+    if latest["turbidity"] > 5:
+        alerts.append({
+            "title": "High Turbidity",
+            "message": f"{latest['turbidity']} NTU",
+            "severity": "high"
+        })
+
+    return jsonify(alerts)
 
 @app.route('/api/firebase/history', methods=['GET', 'OPTIONS'])
 @jwt_required()
@@ -173,7 +249,7 @@ def get_dashboard_stats():
 def get_live_readings():
     if request.method == 'OPTIONS':
         return '', 200
-    return jsonify([]), 200
+    return jsonify(live_readings), 200
 
 @app.route('/api/analyze/upload', methods=['POST', 'OPTIONS'])
 @jwt_required()
@@ -236,6 +312,11 @@ def get_history():
             'anomalies': sum(1 for r in data['results'] if r['is_anomaly'])
         })
     return jsonify(history), 200
+
+threading.Thread(
+    target=sensor_simulator,
+    daemon=True
+).start()
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
