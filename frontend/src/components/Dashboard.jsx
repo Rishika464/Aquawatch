@@ -781,8 +781,25 @@ const Dashboard = ({ setIsAuthenticated }) => {
                 <tbody>
                   {(Array.isArray(liveReadings) ? liveReadings : []).slice(0, 10).map((item, idx) => (
                     <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
-                      <td className="aw-mono" style={{ padding: '14px 18px 14px 0', color: '#eaeef3', fontSize: '12px' }}>
-                        {item.timestamp ? new Date(item.timestamp).toLocaleTimeString() : '-'}
+                      <td
+                        className="aw-mono"
+                        style={{
+                          padding: '14px 18px 14px 0',
+                          color: '#eaeef3',
+                          fontSize: '12px'
+                        }}
+                      >
+                        {item.timestamp
+                          ? new Date(item.timestamp + "Z").toLocaleTimeString(
+                              "en-IN",
+                              {
+                                hour: "numeric",
+                                minute: "2-digit",
+                                second: "2-digit"
+                              }
+                            )
+                          : "-"
+                        }
                       </td>
                       <td style={{ padding: '14px 18px 14px 0', fontSize: '13px' }} className={getStatusColor(item.ph, 6.5, 8.5)}>
                         {item.ph?.toFixed(1) || '-'}

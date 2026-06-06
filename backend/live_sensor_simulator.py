@@ -3,6 +3,8 @@ import time
 from datetime import datetime
 import firebase_admin
 from firebase_admin import credentials, firestore
+from datetime import datetime, timezone
+
 
 # Firebase setup
 cred = credentials.Certificate("serviceAcckey.json")
@@ -27,7 +29,7 @@ while True:
         "turbidity": round(random.uniform(1, 5), 2),
         "salinity": round(random.uniform(15, 35), 2),
         "dwsi": round(random.uniform(65, 90), 2),
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
     # Occasionally inject anomaly
